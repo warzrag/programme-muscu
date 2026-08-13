@@ -1,5 +1,5 @@
-/* moteur hors-ligne — version v4 */
-const V = 'programme-v4';
+/* moteur hors-ligne — version v6 */
+const V = 'programme-v6';
 const FICHIERS = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
