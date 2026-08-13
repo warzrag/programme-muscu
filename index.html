@@ -296,6 +296,31 @@ h2.sec{
 .set.ok .tick svg{stroke:#fff}
 .set-txt{grid-column:2/4;font-size:14px;color:var(--ink2)}
 
+/* ---- séries en alternance (superset) ---- */
+.et{color:var(--ink2);font-weight:400}
+.serie{border-top:1px solid var(--line);padding:10px 12px 11px}
+.serie-h{
+  display:grid;grid-template-columns:minmax(0,1fr) 64px 56px 44px;gap:6px;
+  align-items:baseline;margin-bottom:6px;padding:0 9px;
+}
+.serie-h b{font-family:var(--f-display);font-size:16px;letter-spacing:.09em;font-weight:400;color:var(--ink2)}
+.serie-h u{
+  text-decoration:none;text-align:center;font-size:10px;text-transform:uppercase;
+  letter-spacing:.09em;color:var(--ink2);opacity:.75;
+}
+.set.sup{
+  grid-template-columns:minmax(0,1fr) 64px 56px 44px;
+  gap:6px;padding:7px 8px;border:1px solid var(--line);border-radius:11px;margin-bottom:6px;background:var(--card2);
+}
+.set.sup:last-child{margin-bottom:0}
+.set.sup.ok{background:var(--ok-soft);border-color:transparent}
+.mvn{font-size:13.5px;line-height:1.2;font-weight:600;min-width:0}
+.mvn em{display:block;font-style:normal;font-size:11.5px;font-weight:400;color:var(--ink2);margin-top:1px}
+.set.sup.ok .mvn em{color:var(--ok)}
+.set.sup .fld input{padding:9px 8px 9px 9px;font-size:15px;text-align:center}
+.set.sup .fld u{display:none}
+.set.sup .tick{width:40px;height:38px}
+
 /* ---- circuit ---- */
 .round{border-top:1px solid var(--line);padding:11px 14px}
 .round-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -481,12 +506,12 @@ var PROGRAM=[
 ]},
 {id:'mer',dow:3,jour:'Mercredi',nom:'Épaules',ex:[
   {type:'superset',sets:4,
-   a:{n:'Développé militaire debout à la machine',reps:'10 G + 10 D + 10 les deux'},
-   b:{n:'Haussements d\'épaules (trapèzes)',reps:'haltères'},
+   a:{n:'Développé militaire debout à la machine',court:'Développé militaire machine',reps:'10 G + 10 D + 10 les deux'},
+   b:{n:'Haussements d\'épaules (trapèzes)',court:'Haussements d\'épaules',reps:'10'},
    note:"10 à gauche bras droit tendu, 10 à droite bras gauche tendu, puis 10 les deux bras. Les trapèzes se font pendant le repos."},
   {type:'superset',sets:4,
-   a:{n:'Développé militaire assis haltères',reps:'10'},
-   b:{n:'Haussements d\'épaules (trapèzes)',reps:'haltères'},
+   a:{n:'Développé militaire assis haltères',court:'Développé militaire haltères',reps:'10'},
+   b:{n:'Haussements d\'épaules (trapèzes)',court:'Haussements d\'épaules',reps:'10'},
    note:"Trapèzes pendant le temps de repos."},
   {type:'circuit',rounds:4,restAfter:90,n:'Circuit épaules aux haltères',
    items:[{n:'Élévations latérales',reps:'10'},{n:'Élévations frontales',reps:'10'},{n:'Assis, buste collé aux genoux : coudes vers l\'arrière',reps:'10'}],
@@ -495,16 +520,16 @@ var PROGRAM=[
 ]},
 {id:'jeu',dow:4,jour:'Jeudi',nom:'Bras',ex:[
   {type:'superset',sets:4,
-   a:{n:'Poulie basse tirée au-dessus de la tête (triceps)',reps:'10'},
-   b:{n:'Biceps marteau haltères',reps:'10'},
+   a:{n:'Poulie basse tirée au-dessus de la tête (triceps)',court:'Triceps poulie basse',reps:'10'},
+   b:{n:'Biceps marteau haltères',court:'Biceps marteau',reps:'10'},
    note:"Poulie tout en bas. On alterne : une série de triceps, puis les biceps pendant le repos."},
   {type:'superset',sets:4,
-   a:{n:'Poulie haute triceps (classique)',reps:'10'},
-   b:{n:'Biceps à la barre W',reps:'10'},
+   a:{n:'Poulie haute triceps (classique)',court:'Triceps poulie haute',reps:'10'},
+   b:{n:'Biceps à la barre W',court:'Biceps barre W',reps:'10'},
    note:"Poulie tout en haut. On alterne les deux."},
   {type:'superset',sets:4,
-   a:{n:'Dips',reps:'max'},
-   b:{n:'Biceps barre W — 7 / 7 / 7',reps:'7+7+7'},
+   a:{n:'Dips',court:'Dips',reps:'max'},
+   b:{n:'Biceps barre W — 7 / 7 / 7',court:'Biceps barre W 7/7/7',reps:'7+7+7'},
    note:"Dips lestés si tu peux. Barre W : 7 reps du bas au milieu, 7 du milieu au haut, 7 complètes."},
   ABS
 ]},
@@ -777,6 +802,9 @@ function compte(ex,i){
   else if(ex.type==='circuit'){
     t=ex.rounds*ex.items.length;
     for(var r=0;r<ex.rounds;r++) for(var m=0;m<ex.items.length;m++) if(v[i+'r'+r+'m'+m]) f++;
+  }else if(ex.type==='superset'){
+    t=ex.sets*2;
+    for(var s=0;s<ex.sets;s++){ if(v[i+'s'+s]) f++; if(v[i+'b'+s]) f++; }
   }else{
     t=ex.sets;
     for(var s=0;s<ex.sets;s++) if(v[i+'s'+s]) f++;
@@ -822,12 +850,19 @@ function carteExo(ex,i){
 
   if(ex.type==='superset'){
     h+='<div class="ex-head"><div class="ex-idx">'+(fini?'✓':(i+1))+'</div><div>'
-      +'<div class="ex-name">'+esc(ex.a.n)+'<br><span style="color:var(--ink2);font-weight:400;font-size:14px">en alternance avec</span><br>'+esc(ex.b.n)+'</div>'
-      +'<div class="ex-target">'+ex.sets+' × '+esc(ex.a.reps)+'</div></div></div>';
+      +'<div class="ex-name">'+esc(ex.a.court)+' <span class="et">puis</span> '+esc(ex.b.court)+'</div>'
+      +'<div class="ex-target">'+ex.sets+' SÉRIES — ON ALTERNE LES DEUX</div></div></div>';
     if(ex.note) h+='<div class="ex-note">'+esc(ex.note)+'</div>';
-    h+='<div class="sets">';
-    for(var s=0;s<ex.sets;s++) h+=ligneSerie(ex,i,s,ex.a.n,ex.b.n);
-    h+='</div></div>';return h;
+    for(var s=0;s<ex.sets;s++){
+      var kA=i+'s'+s, kB=i+'b'+s;
+      h+='<div class="serie">'
+        +'<div class="serie-h"><b>SÉRIE '+(s+1)+((S.courant.faits[kA]&&S.courant.faits[kB])?' ✓':'')+'</b>'
+        +'<u>kg</u><u>reps</u><span></span></div>'
+        +ligneAlt(ex,i,s,'s',ex.a,0)
+        +ligneAlt(ex,i,s,'b',ex.b,1)
+        +'</div>';
+    }
+    h+='</div>';return h;
   }
 
   h+='<div class="ex-head"><div class="ex-idx">'+(fini?'✓':(i+1))+'</div><div>'
@@ -840,32 +875,48 @@ function carteExo(ex,i){
     if(t>0) h+='<div class="ex-note" style="border-left-color:var(--accent)">Dernière fois : '+t+' kg au plus lourd.</div>';
   }
   h+='<div class="sets">';
-  for(var s2=0;s2<ex.sets;s2++) h+=ligneSerie(ex,i,s2,ex.n,null);
+  for(var s2=0;s2<ex.sets;s2++) h+=ligneSerie(ex,i,s2);
   h+='</div></div>';
   return h;
 }
 
-function ligneSerie(ex,i,s,nomA,nomB){
+/* placeholder de reps lisible : un nombre seul, sinon rien */
+function phReps(reps){
+  var t=String(reps);
+  return /^\d+$/.test(t)?t:'reps';
+}
+/* libellé de l'objectif sous le nom du mouvement */
+function libReps(reps){
+  var t=String(reps);
+  if(/^\d+$/.test(t)) return t+' reps';
+  if(t==='max') return 'reps max';
+  return t;
+}
+
+/* ligne d'un exercice classique : n° de série, kg, reps, validation */
+function ligneSerie(ex,i,s){
   var cle=i+'s'+s, on=!!S.courant.faits[cle];
   var v=S.courant.vals[cle]||{};
-  var d=derniereFois(nomA), ph=(d&&d[s]&&d[s].kg)?String(d[s].kg):'kg';
-  var repsCible=(ex.type==='superset')?ex.a.reps:ex.reps;
-  var phr=(repsCible==='max'||String(repsCible).indexOf('+')>=0)?'reps':String(repsCible).replace(/[^0-9]/g,'')||'reps';
-  var h='<div class="set'+(on?' ok':'')+'" data-set="'+cle+'">'
+  var d=derniereFois(ex.n), ph=(d&&d[s]&&d[s].kg)?String(d[s].kg):'kg';
+  return '<div class="set'+(on?' ok':'')+'" data-set="'+cle+'">'
    +'<div class="set-n">'+(s+1)+'</div>'
    +'<div class="fld"><input type="text" inputmode="decimal" data-f="kg" data-k="'+cle+'" value="'+(v.kg!=null?v.kg:'')+'" placeholder="'+ph+'"><u>kg</u></div>'
-   +'<div class="fld"><input type="text" inputmode="numeric" data-f="reps" data-k="'+cle+'" value="'+(v.reps!=null?v.reps:'')+'" placeholder="'+phr+'"><u>reps</u></div>'
-   +'<button class="tick" data-tick="'+cle+'" aria-label="Valider la série"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></button>'
+   +'<div class="fld"><input type="text" inputmode="numeric" data-f="reps" data-k="'+cle+'" value="'+(v.reps!=null?v.reps:'')+'" placeholder="'+phReps(ex.reps)+'"><u>reps</u></div>'
+   +'<button class="tick" data-tick="'+cle+'" data-rest="'+S.settings.rest+'" aria-label="Valider la série"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></button>'
    +'</div>';
-  if(nomB){
-    var cb=i+'b'+s, vb=S.courant.vals[cb]||{};
-    var db=derniereFois(nomB), phb=(db&&db[s]&&db[s].kg)?String(db[s].kg):'kg';
-    h+='<div class="set" data-set="'+cb+'" style="padding-top:2px;padding-bottom:10px;background:var(--card2)">'
-      +'<div class="set-n" style="font-size:13px;font-family:var(--f-body)">+</div>'
-      +'<div class="fld" style="grid-column:2/4"><input type="text" inputmode="decimal" data-f="kg" data-k="'+cb+'" value="'+(vb.kg!=null?vb.kg:'')+'" placeholder="'+phb+'"><u>kg — '+esc(nomB.split(' ')[0].toLowerCase())+'</u></div>'
-      +'<div></div></div>';
-  }
-  return h;
+}
+
+/* ligne d'un mouvement dans une série en alternance : le nom est écrit en toutes lettres */
+function ligneAlt(ex,i,s,pref,mv,declencheRepos){
+  var cle=i+pref+s, on=!!S.courant.faits[cle];
+  var v=S.courant.vals[cle]||{};
+  var d=derniereFois(mv.n), ph=(d&&d[s]&&d[s].kg)?String(d[s].kg):'kg';
+  return '<div class="set sup'+(on?' ok':'')+'" data-set="'+cle+'">'
+   +'<div class="mvn">'+esc(mv.court)+'<em>'+esc(libReps(mv.reps))+'</em></div>'
+   +'<div class="fld"><input type="text" inputmode="decimal" data-f="kg" data-k="'+cle+'" value="'+(v.kg!=null?v.kg:'')+'" placeholder="'+ph+'"><u>kg</u></div>'
+   +'<div class="fld"><input type="text" inputmode="numeric" data-f="reps" data-k="'+cle+'" value="'+(v.reps!=null?v.reps:'')+'" placeholder="'+phReps(mv.reps)+'"><u>reps</u></div>'
+   +'<button class="tick" data-tick="'+cle+'" data-rest="'+(declencheRepos?S.settings.rest:0)+'" aria-label="Valider ce mouvement"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></button>'
+   +'</div>';
 }
 
 /* ---------- progrès ---------- */
@@ -1010,7 +1061,7 @@ function brancher(){
     });
   });
   v.querySelectorAll('[data-tick]').forEach(function(b){
-    b.addEventListener('click',function(){ valider(b.dataset.tick); });
+    b.addEventListener('click',function(){ valider(b.dataset.tick,parseInt(b.dataset.rest,10)||0); });
   });
   v.querySelectorAll('input[data-k]').forEach(function(inp){
     inp.addEventListener('input',function(){
@@ -1068,7 +1119,7 @@ function demarrer(sid){
   reveilAudio();garderEcran(true);save();go('home');
 }
 
-function valider(cle){
+function valider(cle,rest){
   reveilAudio();
   if(S.courant.faits[cle]){ delete S.courant.faits[cle]; save();render();return; }
   S.courant.faits[cle]=1;
@@ -1079,7 +1130,7 @@ function valider(cle){
   if(inp&&!inp.value&&inp.placeholder!=='kg') S.courant.vals[cle].kg=inp.placeholder;
   if(inr&&!inr.value&&inr.placeholder!=='reps') S.courant.vals[cle].reps=inr.placeholder;
   save();render();
-  repos(S.settings.rest);
+  if(rest) repos(rest);
 }
 
 /* ---- repos ---- */
@@ -1164,17 +1215,18 @@ function terminer(){
       }
       return;
     }
-    var noms=(ex.type==='superset')?[{n:ex.a.n,p:'s'},{n:ex.b.n,p:'b'}]:[{n:ex.n,p:'s'}];
-    noms.forEach(function(o){
+    var mvts=(ex.type==='superset')
+      ? [{n:ex.a.n,p:'s',reps:ex.a.reps},{n:ex.b.n,p:'b',reps:ex.b.reps}]
+      : [{n:ex.n,p:'s',reps:ex.reps}];
+    mvts.forEach(function(o){
       var series=[];
       for(var s=0;s<ex.sets;s++){
-        if(o.p==='s'&&!S.courant.faits[i+'s'+s]) continue;
-        if(o.p==='b'&&!S.courant.faits[i+'s'+s]) continue;
+        if(!S.courant.faits[i+o.p+s]) continue;
         var v=S.courant.vals[i+o.p+s]||{};
-        var kg=nb(v.kg), rp=nb(v.reps)|| (o.p==='s'?nb((ex.type==='superset'?ex.a.reps:ex.reps)):0);
+        var kg=nb(v.kg), rp=nb(v.reps)||nb(o.reps);
         if(kg||rp) series.push({kg:kg,reps:rp});
         rec.volume+=kg*rp;
-        if(o.p==='s') rec.series++;
+        rec.series++;
       }
       if(series.length) rec.ex.push({n:o.n,series:series});
     });
